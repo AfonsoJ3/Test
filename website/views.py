@@ -7,7 +7,15 @@ def is_authenticated():
     """Check if user is authenticated"""
     return session.get('authenticated', False)
  
-@views.route('/', methods=['GET', 'POST'])
+@views.route('/')
+def index():
+    # Root route - redirect to login if not authenticated, home if authenticated
+    if not is_authenticated():
+        return redirect(url_for('auth.login'))
+    else:
+        return redirect(url_for('views.home'))
+
+@views.route('/home', methods=['GET', 'POST'])
 def home():
     # Check if user is authenticated, if not redirect to login
     if not is_authenticated():
