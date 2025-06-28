@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+{% block title %}Vacation Genie - Plan Your Perfect Trip{% endblock %}
+
+{% block content %}
+<div class="vacation-genie-home"> 
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h1 class="hero-title">🌴 Vacation Genie</h1>
+        <p class="hero-subtitle">Your AI-powered travel companion for the perfect getaway</p>
+      </div>
+
+      <!-- Search Form -->
+      <div class="search-container">
+        <form id="travelSearchForm" method="POST" action="/">
+          <div class="search-box">
+            <div class="search-header">
+              <h3>🔍 Plan Your Perfect Trip</h3>
+              <p>Tell us where you want to go and when</p>
+            </div>
+            <div class="row">
+              <!-- Origin Input -->
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="input-group">
+                  <label class="input-label">From</label>
+                  <div class="autocomplete-wrapper">
+                    <input type="text" id="origin" name="origin" class="form-control search-input" 
+                           placeholder="Enter origin city" autocomplete="off" required 
+                           value="{{ origin or '' }}">
+                    <div class="autocomplete-dropdown" id="originDropdown"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Destination Input -->
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="input-group">
+                  <label class="input-label">To</label>
+                  <div class="autocomplete-wrapper">
+                    <input type="text" id="destination" name="destination" class="form-control search-input" 
+                           placeholder="Enter destination city" autocomplete="off" required
+                           value="{{ destination or '' }}">
+                    <div class="autocomplete-dropdown" id="destinationDropdown"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Departure Date -->
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="input-group date-field-group">
+                  <label class="input-label date-label">Departure</label>
+                  <input type="date" id="departureDate" name="departureDate" class="form-control search-input date-input" required
+                         value="{{ departure_date or '' }}">
+                </div>
+              </div>
+
+              <!-- Return Date -->
+              <div class="col-md-3 col-sm-6 mb-3">
+                <div class="input-group date-field-group">
+                  <label class="input-label date-label">Return</label>
+                  <input type="date" id="returnDate" name="returnDate" class="form-control search-input date-input" required
+                         value="{{ return_date or '' }}">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Search Button Row - Centered -->
+            <div class="row">
+              <div class="col-12">
+                <div class="search-btn-container">
+                  <button type="submit" class="btn btn-search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                    </svg>
+                    Search
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-section" id="resultsSection" style="display: none;">
+    <div class="container">
+      <div class="results-header">
+        <h2>✈️ Your Perfect Itinerary</h2>
+        <p class="results-subtitle">Here's your personalized travel plan</p>
+      </div>
+
+      <!-- Timeline Container -->
+      <div class="timeline-container" id="timelineContainer">
+        <!-- Timeline content will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-section" id="loadingSection" style="display: none;">
+    <div class="container text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <p class="mt-3">Creating your perfect itinerary...</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .vacation-genie-home {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding-top: 2rem;
+  }
+
+  .hero-section {
+    padding: 3rem 0;
+  }
+
+  .hero-title {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .hero-subtitle {
+    font-size: 1.3rem;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 3rem;
+  }
+
+  .search-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .search-box {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  .search-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .search-header h3 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .search-header p {
+    color: #666;
+    margin-bottom: 0;
+  }
+
+  .input-label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* Date field specific styling */
+  .date-field-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .date-label {
+    order: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .date-input {
+    order: 2;
+  }
+
+  .search-input {
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+  }
+
+  .search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: white;
+    outline: none;
+  }
+
+  .autocomplete-wrapper {
+    position: relative;
+  }
+
+  .autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+  }
+
+  .autocomplete-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s ease;
+  }
+
+  .autocomplete-item:hover,
+  .autocomplete-item.active {
+    background-color: #f8f9fa;
+  }
+
+  /* Search button container - centered */
+  .search-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .btn-search {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    justify-content: center;
+    min-width: 150px;
+  }
+
+  .btn-search:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+  }
+
+  .results-section {
+    background: #f8f9fa;
+    padding: 4rem 0;
+    min-height: 60vh;
+  }
+
+  .results-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .results-header h2 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+
+  .results-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+  }
+
+  .timeline-container {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-left: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+  }
+
+  .timeline-item::after {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 1rem;
+    width: 15px;
+    height: 15px;
+    background: #667eea;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .timeline-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-left: 1rem;
+  }
+
+  .timeline-day {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.3rem;
+  }
+
+  .timeline-date {
+    font-size: 0.9rem;
+    color: #999;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+
+  .timeline-activities {
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .loading-section {
+    padding: 4rem 0;
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2.5rem;
+    }
+    
+    .search-box {
+      padding: 1.5rem;
+    }
+    
+    .search-btn-container {
+      margin-top: 1rem;
+    }
+    
+    .btn-search {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+// Popular cities for autocomplete
+const cities = [
+  'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ',
+  'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA',
+  'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Charlotte, NC',
+  'San Francisco, CA', 'Indianapolis, IN', 'Seattle, WA', 'Denver, CO', 'Washington, DC',
+  'Boston, MA', 'El Paso, TX', 'Nashville, TN', 'Detroit, MI', 'Oklahoma City, OK',
+  'Portland, OR', 'Las Vegas, NV', 'Memphis, TN', 'Louisville, KY', 'Baltimore, MD',
+  'Milwaukee, WI', 'Albuquerque, NM', 'Tucson, AZ', 'Fresno, CA', 'Mesa, AZ',
+  'Sacramento, CA', 'Atlanta, GA', 'Kansas City, MO', 'Colorado Springs, CO', 'Miami, FL',
+  'Raleigh, NC', 'Omaha, NE', 'Long Beach, CA', 'Virginia Beach, VA', 'Oakland, CA',
+  // International destinations
+  'London, UK', 'Paris, France', 'Tokyo, Japan', 'Sydney, Australia', 'Rome, Italy',
+  'Barcelona, Spain', 'Amsterdam, Netherlands', 'Berlin, Germany', 'Vienna, Austria',
+  'Prague, Czech Republic', 'Budapest, Hungary', 'Istanbul, Turkey', 'Athens, Greece',
+  'Lisbon, Portugal', 'Copenhagen, Denmark', 'Stockholm, Sweden', 'Oslo, Norway',
+  'Dublin, Ireland', 'Edinburgh, Scotland', 'Zurich, Switzerland'
+];
+
+// Autocomplete functionality
+function setupAutocomplete(inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  
+  input.addEventListener('input', function() {
+    const value = this.value.toLowerCase();
+    const filtered = cities.filter(city => 
+      city.toLowerCase().includes(value)
+    ).slice(0, 8);
+    
+    if (value.length > 0 && filtered.length > 0) {
+      dropdown.innerHTML = filtered.map(city => 
+        `<div class="autocomplete-item" onclick="selectCity('${inputId}', '${city}')">${city}</div>`
+      ).join('');
+      dropdown.style.display = 'block';
+    } else {
+      dropdown.style.display = 'none';
+    }
+  });
+  
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+function selectCity(inputId, city) {
+  document.getElementById(inputId).value = city;
+  document.getElementById(inputId.replace(/^(\w+)/, '$1Dropdown')).style.display = 'none';
+}
+
+// Initialize autocomplete for both inputs
+setupAutocomplete('origin', 'originDropdown');
+setupAutocomplete('destination', 'destinationDropdown');
+
+// Set minimum date to today
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('departureDate').min = today;
+document.getElementById('returnDate').min = today;
+
+// Update return date minimum when departure date changes
+document.getElementById('departureDate').addEventListener('change', function() {
+  document.getElementById('returnDate').min = this.value;
+});
+
+// Form submission handler
+document.getElementById('travelSearchForm').addEventListener('submit', function(e) {
+  // Don't prevent default - let the form submit normally to the backend
+  // Show loading state
+  document.getElementById('loadingSection').style.display = 'block';
+  document.getElementById('resultsSection').style.display = 'none';
+});
+
+// Check if we have itinerary data from the backend
+{% if itinerary %}
+  // Hide loading and show results
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('loadingSection').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'block';
+    
+    // Populate with backend data
+    showBackendResults();
+    
+    // Scroll to results
+    setTimeout(() => {
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  });
+{% endif %}
+
+function showBackendResults() {
+  const timeline = document.getElementById('timelineContainer');
+  
+  {% if itinerary %}
+    const itinerary = {{ itinerary | tojson }};
+    
+    timeline.innerHTML = itinerary.map(item => `
+      <div class="timeline-item">
+        <div class="timeline-content">
+          <div class="timeline-day">${item.day}</div>
+          <div class="timeline-date">${item.date}</div>
+          <div class="timeline-activities">${item.activities}</div>
+        </div>
+      </div>
+    `).join('');
+  {% endif %}
+}
+
+function showSampleResults() {
+  const timeline = document.getElementById('timelineContainer');
+  const origin = document.getElementById('origin').value;
+  const destination = document.getElementById('destination').value;
+  
+  // Sample timeline data (will be replaced with AI-generated content later)
+  const sampleItinerary = [
+    {
+      day: 'Day 1',
+      activities: `Arrive in ${destination}. Check into hotel and explore the downtown area. Visit local markets and try authentic cuisine.`
+    },
+    {
+      day: 'Day 2', 
+      activities: `Full day city tour of ${destination}. Visit major attractions, museums, and historical sites. Evening at leisure.`
+    },
+    {
+      day: 'Day 3',
+      activities: `Adventure day! Outdoor activities and nature excursions. Photography opportunities and local experiences.`
+    },
+    {
+      day: 'Day 4',
+      activities: `Shopping and cultural experiences. Visit local artisan shops and cultural centers. Farewell dinner.`
+    },
+    {
+      day: 'Day 5',
+      activities: `Check out and departure back to ${origin}. Last-minute souvenir shopping if time permits.`
+    }
+  ];
+  
+  timeline.innerHTML = sampleItinerary.map(item => `
+    <div class="timeline-item">
+      <div class="timeline-content">
+        <div class="timeline-day">${item.day}</div>
+        <div class="timeline-activities">${item.activities}</div>
+      </div>
+    </div>
+  `).join('');
+}
+</script>
+{% endblock %}
