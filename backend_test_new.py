@@ -53,7 +53,7 @@ class VacationGenieTests(unittest.TestCase):
         
         response = self.session.post(f"{self.BASE_URL}/sign-up", data=signup_data, allow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Account created", response.text.lower())
+        self.assertIn("account created! please log in", response.text.lower())
     
     def test_5_login_with_invalid_credentials(self):
         """Test login functionality with incorrect credentials"""
