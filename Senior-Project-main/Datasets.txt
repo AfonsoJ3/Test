@@ -1,0 +1,20 @@
+hugging face dataset 
+
+https://huggingface.co/datasets/osunlp/TravelPlanner 1
+
+
+model use in hugging face to explore if thinks go south.
+https://huggingface.co/rahmanazhar/Travereel-Model-V1
+
+Kaggle dataset
+
+https://www.kaggle.com/datasets/rkiattisak/traveler-trip-data 1
+
+
+
+More datasets
+https://huggingface.co/datasets/Zuru7/European_Destination_For_Tour/blob/main/destinations.csv
+https://huggingface.co/datasets/qiqiuyi6/TravelPlanner_RL
+
+Test
+https://huggingface.co/datasets/qiqiuyi6/TravelPlanner_RL_test
